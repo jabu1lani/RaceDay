@@ -53,7 +53,7 @@ Profile Management: Update personal information and view enrolment history
 - Weather information for events
 
 ### GitHub Actions
-[![Build Status](https://github.com/jabu1lani/RaceDay/blob/main/.github/workflows/validate.ym)
+gi(https://github.com/jabu1lani/RaceDay/blob/main/.github/workflows/validate.ym)
 
 l
 ### Video Walkthrough
