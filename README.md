@@ -52,12 +52,9 @@ Profile Management: Update personal information and view enrolment history
 - Results tracking and leaderboards
 - Weather information for events
 
-### GitHub Actions
-gi(https://github.com/jabu1lani/RaceDay/blob/main/.github/workflows/validate.ym)
 
-l
 ### Video Walkthrough
-[Part 1 Submission Video](https://youtu.be/your-video-link)
+[Part 1 Submission Video](https://youtu.be/02skAj9lkx0)
 
 ### Repository Structure
 
