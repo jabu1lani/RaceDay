@@ -34,9 +34,9 @@ Race-Day Preparation: Access live weather information and route details for upco
 Profile Management: Update personal information and view enrolment history
 
 ### Documentation
-- **ERD**: `/docs/erd.png` - Entity Relationship Diagram
-- **API Plan**: `/docs/api-endpoint-plan.md` - Complete API endpoint specifications
-- **Database Script**: `/docs/raceday-database.sql` - SQL Server schema and seed data
+- **ERD**: `docs/(updated) ERD matches sql.png` - Entity Relationship Diagram
+- **API Plan**: `docs/Raceday_API_Endpoint_Plan.pdf` - Complete API endpoint specifications
+- **Database Script**: `docs\Raceday-database.sql` - SQL Server schema and seed data
 
 ### Database Schema
 - 8 core tables (Role, User, Event, Category, EventCategory, Enrolment, Result, Weather)
