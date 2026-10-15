@@ -1,231 +1,32 @@
-name: RaceDay Part 1 Validation
+name: RaceDay API CI
 
 on:
   push:
-    branches: [ main, master, develop ]
+    branches: [ main, develop ]
   pull_request:
-    branches: [ main, master ]
-  workflow_dispatch:
+    branches: [ main ]
 
 jobs:
-  validate-part1:
-    name: Validate Part 1 Submission
+  build-and-test:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: 📥 Checkout repository
+    - name: Checkout repository
       uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
       with:
-        fetch-depth: 0
+        dotnet-version: '8.0.x'
 
-    - name: 📂 List repository structure (DEBUG)
-      run: |
-        echo "=== Repository Structure ==="
-        ls -la
-        echo ""
-        echo "=== docs folder contents ==="
-        ls -la docs/ || echo "docs folder not found!"
-        echo ""
-        echo "=== All files ==="
-        find . -type f -not -path "./.git/*" | sort
+    - name: Restore dependencies
+      run: dotnet restore
 
-    - name: 📁 Check docs folder
-      run: |
-        echo "🔍 Checking for docs folder..."
-        if [ -d "docs" ]; then
-          echo "✅ docs folder exists"
-        else
-          echo "❌ docs folder not found!"
-          exit 1
-        fi
+    - name: Build solution
+      run: dotnet build --no-restore --configuration Release
 
-    - name: 📄 Check ERD file
-      run: |
-        echo "🔍 Checking for ERD file..."
-        # Look for any file with ERD in the name
-        ERD_FILE=$(ls docs/ | grep -i "erd" | head -1)
-        if [ -n "$ERD_FILE" ]; then
-          echo "✅ ERD file found: $ERD_FILE"
-        else
-          echo "❌ ERD file not found!"
-          echo "Files in docs folder:"
-          ls -la docs/
-          exit 1
-        fi
+    - name: Run tests
+      run: dotnet test --no-build --configuration Release --verbosity normal
 
-    - name: 📄 Check API Endpoint Plan
-      run: |
-        echo "🔍 Checking for API Endpoint Plan..."
-        API_FILE=$(ls docs/ | grep -i "api" | head -1)
-        if [ -n "$API_FILE" ]; then
-          echo "✅ API Endpoint Plan found: $API_FILE"
-        else
-          echo "❌ API Endpoint Plan not found!"
-          echo "Files in docs folder:"
-          ls -la docs/
-          exit 1
-        fi
-
-    - name: 📄 Check SQL Script
-      run: |
-        echo "🔍 Checking for SQL script..."
-        SQL_FILE=$(ls docs/ | grep -i ".sql" | head -1)
-        if [ -n "$SQL_FILE" ]; then
-          echo "✅ SQL script found: $SQL_FILE"
-        else
-          echo "❌ SQL script not found!"
-          echo "Files in docs folder:"
-          ls -la docs/
-          exit 1
-        fi
-
-    - name: 📄 Check README
-      run: |
-        echo "🔍 Checking for README..."
-        if [ -f "README.md" ]; then
-          echo "✅ README.md found"
-        else
-          echo "❌ README.md not found!"
-          exit 1
-        fi
-
-    - name: 🔍 Validate SQL content
-      run: |
-        echo "🔍 Validating SQL script..."
-        SQL_FILE=$(ls docs/ | grep -i ".sql" | head -1)
-        echo "Checking: docs/$SQL_FILE"
-        
-        # Count CREATE TABLE statements
-        TABLE_COUNT=$(grep -c "CREATE TABLE" "docs/$SQL_FILE" || echo "0")
-        echo "Found $TABLE_COUNT CREATE TABLE statements"
-        
-        if [ $TABLE_COUNT -lt 6 ]; then
-          echo "❌ SQL script has less than 6 CREATE TABLE statements"
-          echo "Found: $TABLE_COUNT tables"
-          echo "Minimum required: 6 tables"
-          exit 1
-        else
-          echo "✅ SQL script has $TABLE_COUNT tables"
-        fi
-        
-        # Check for INSERT statements
-        INSERT_COUNT=$(grep -c "INSERT INTO" "docs/$SQL_FILE" || echo "0")
-        if [ $INSERT_COUNT -gt 0 ]; then
-          echo "✅ Found $INSERT_COUNT INSERT statements (seed data)"
-        else
-          echo "⚠️ Warning: No INSERT statements found (seed data may be missing)"
-        fi
-        
-        # Check for FOREIGN KEY
-        FK_COUNT=$(grep -c "FOREIGN KEY" "docs/$SQL_FILE" || echo "0")
-        if [ $FK_COUNT -gt 0 ]; then
-          echo "✅ Found $FK_COUNT FOREIGN KEY constraints"
-        else
-          echo "⚠️ Warning: No FOREIGN KEY constraints found"
-        fi
-
-    - name: 📊 Count commits
-      run: |
-        echo "🔍 Counting commits..."
-        COMMIT_COUNT=$(git rev-list --count HEAD)
-        echo "Total commits: $COMMIT_COUNT"
-        
-        if [ $COMMIT_COUNT -ge 20 ]; then
-          echo "✅ Minimum 20 commits achieved ($COMMIT_COUNT)"
-        else
-          echo "⚠️ Warning: Only $COMMIT_COUNT commits found. Need at least 20."
-          echo "You need $((20 - COMMIT_COUNT)) more commits."
-        fi
-
-    - name: 📝 Check API Plan content
-      run: |
-        echo "🔍 Validating API Endpoint Plan..."
-        API_FILE=$(ls docs/ | grep -i "api" | head -1)
-        
-        if [ -n "$API_FILE" ]; then
-          # Check file size
-          if [ -f "docs/$API_FILE" ]; then
-            FILE_SIZE=$(stat -c%s "docs/$API_FILE" 2>/dev/null || echo "0")
-            if [ "$FILE_SIZE" -gt 1024 ]; then
-              echo "✅ API Plan has substantial content ($FILE_SIZE bytes)"
-            else
-              echo "⚠️ Warning: API Plan file seems small ($FILE_SIZE bytes)"
-            fi
-          fi
-        fi
-
-    - name: ✅ All validations passed
-      run: |
-        echo ""
-        echo "╔════════════════════════════════════════════════════════╗"
-        echo "║             ✅ ALL VALIDATIONS PASSED ✅               ║"
-        echo "╚════════════════════════════════════════════════════════╝"
-        echo ""
-        echo "📋 Summary:"
-        echo "   ✅ docs/ folder exists"
-        echo "   ✅ ERD file found"
-        echo "   ✅ API Endpoint Plan found"
-        echo "   ✅ SQL Script found"
-        echo "   ✅ README.md found"
-        echo "   ✅ Minimum 6 tables in SQL"
-        echo ""
-        echo "📊 Repository Statistics:"
-        echo "   📄 Commit count: $(git rev-list --count HEAD)"
-        SQL_FILE=$(ls docs/ | grep -i ".sql" | head -1)
-        if [ -n "$SQL_FILE" ]; then
-          SQL_LINES=$(wc -l < "docs/$SQL_FILE")
-          echo "   📝 SQL lines: $SQL_LINES"
-        fi
-        echo ""
-        echo "🎉 Ready for Part 1 submission!"
-
-    - name: 📤 Generate Validation Report
-      run: |
-        cat > validation-report.md << 'EOF'
-        # RaceDay Part 1 - Validation Report
-        
-        ## ✅ Validation Status: PASSED
-        
-        ### Files Verified:
-        
-        | File Type | Status | Location |
-        |-----------|--------|----------|
-        | 📁 docs folder | ✅ Found | /docs |
-        | 📄 ERD Diagram | ✅ Found | /docs/erd*.png or .pdf |
-        | 📄 API Endpoint Plan | ✅ Found | /docs/*api* |
-        | 📄 SQL Script | ✅ Found | /docs/*.sql |
-        | 📄 README.md | ✅ Found | /README.md |
-        
-        ### SQL Requirements:
-        
-        | Requirement | Status |
-        |-------------|--------|
-        | Minimum 6 tables | ✅ Passed |
-        | Foreign Keys | ✅ Found |
-        | Seed Data | ✅ Found |
-        
-        ### Repository Requirements:
-        
-        | Requirement | Status |
-        |-------------|--------|
-        | Proper structure | ✅ Passed |
-        | All files in correct locations | ✅ Passed |
-        
-        EOF
-        
-        echo "" >> validation-report.md
-        echo "### Files Found in docs/:" >> validation-report.md
-        echo "\`\`\`" >> validation-report.md
-        ls -la docs/ >> validation-report.md
-        echo "\`\`\`" >> validation-report.md
-        
-        echo "" >> validation-report.md
-        echo "---" >> validation-report.md
-        echo "**Generated**: $(date)" >> validation-report.md
-        echo "**Commit**: $(git rev-parse --short HEAD)" >> validation-report.md
-
-    - name: 📤 Upload Validation Report
-      uses: actions/upload-artifact@v4
-      with:
-        name: validation-report
-        path: validation-report.md
+    - name: Build success
+      run: echo "✅ Build and tests passed successfully!"
