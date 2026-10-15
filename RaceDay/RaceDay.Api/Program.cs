@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using RaceDay.Api.Data;
+using RaceDay.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,6 +22,9 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
+builder.Services.AddScoped<IPasswordService, PasswordService>();
+builder.Services.AddScoped<ISessionService, SessionService>();
+
 // Add HttpContextAccessor
 builder.Services.AddHttpContextAccessor();
 
@@ -39,3 +43,4 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
