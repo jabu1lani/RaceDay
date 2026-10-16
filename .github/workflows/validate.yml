@@ -21,31 +21,20 @@ jobs:
 
     - name: Find solution file
       run: |
-        echo "=== Repository contents ==="
+        echo "=== Repository root ==="
         ls -la
         echo ""
         echo "=== All .sln files found ==="
         find . -name "*.sln" -type f
 
     - name: Restore dependencies
-      run: |
-        SLN_FILE=$(find . -name "*.sln" -type f | head -n 1)
-        if [ -z "$SLN_FILE" ]; then
-          echo "❌ No solution file found!"
-          exit 1
-        fi
-        echo "✅ Found solution: $SLN_FILE"
-        dotnet restore "$SLN_FILE"
+      run: dotnet restore RaceDay/RaceDay.sln
 
     - name: Build solution
-      run: |
-        SLN_FILE=$(find . -name "*.sln" -type f | head -n 1)
-        dotnet build "$SLN_FILE" --no-restore --configuration Release
+      run: dotnet build RaceDay/RaceDay.sln --no-restore --configuration Release
 
     - name: Run tests
-      run: |
-        SLN_FILE=$(find . -name "*.sln" -type f | head -n 1)
-        dotnet test "$SLN_FILE" --no-build --configuration Release --verbosity normal
+      run: dotnet test RaceDay/RaceDay.sln --no-build --configuration Release --verbosity normal
 
     - name: Build success
-      run: echo "✅ Build and tests passed successfully!" 
+      run: echo "✅ Build and tests passed successfully!"
