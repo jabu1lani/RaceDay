@@ -10,15 +10,24 @@ namespace RaceDay.Api.Services
 
     public class PasswordService : IPasswordService
     {
+        private const int SaltSize = 16;
+        private const int HashSize = 32;
+        private const int Iterations = 100000;
+
         public string HashPassword(string password)
         {
-            byte[] salt = RandomNumberGenerator.GetBytes(16);
-            var pbkdf2 = new Rfc2898DeriveBytes(password, salt, 100000, HashAlgorithmName.SHA256);
-            byte[] hash = pbkdf2.GetBytes(32);
+            byte[] salt = RandomNumberGenerator.GetBytes(SaltSize);
 
-            byte[] hashBytes = new byte[48];
-            Array.Copy(salt, 0, hashBytes, 0, 16);
-            Array.Copy(hash, 0, hashBytes, 16, 32);
+            byte[] hash = Rfc2898DeriveBytes.Pbkdf2(
+                password,
+                salt,
+                Iterations,
+                HashAlgorithmName.SHA256,
+                HashSize);
+
+            byte[] hashBytes = new byte[SaltSize + HashSize];
+            Array.Copy(salt, 0, hashBytes, 0, SaltSize);
+            Array.Copy(hash, 0, hashBytes, SaltSize, HashSize);
 
             return Convert.ToBase64String(hashBytes);
         }
@@ -27,15 +36,19 @@ namespace RaceDay.Api.Services
         {
             byte[] hashBytes = Convert.FromBase64String(hash);
 
-            byte[] salt = new byte[16];
-            Array.Copy(hashBytes, 0, salt, 0, 16);
+            byte[] salt = new byte[SaltSize];
+            Array.Copy(hashBytes, 0, salt, 0, SaltSize);
 
-            var pbkdf2 = new Rfc2898DeriveBytes(password, salt, 100000, HashAlgorithmName.SHA256);
-            byte[] computedHash = pbkdf2.GetBytes(32);
+            byte[] computedHash = Rfc2898DeriveBytes.Pbkdf2(
+                password,
+                salt,
+                Iterations,
+                HashAlgorithmName.SHA256,
+                HashSize);
 
-            for (int i = 0; i < 32; i++)
+            for (int i = 0; i < HashSize; i++)
             {
-                if (hashBytes[i + 16] != computedHash[i])
+                if (hashBytes[i + SaltSize] != computedHash[i])
                     return false;
             }
             return true;

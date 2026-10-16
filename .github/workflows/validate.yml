@@ -19,14 +19,33 @@ jobs:
       with:
         dotnet-version: '8.0.x'
 
+    - name: Find solution file
+      run: |
+        echo "=== Repository contents ==="
+        ls -la
+        echo ""
+        echo "=== All .sln files found ==="
+        find . -name "*.sln" -type f
+
     - name: Restore dependencies
-      run: dotnet restore
+      run: |
+        SLN_FILE=$(find . -name "*.sln" -type f | head -n 1)
+        if [ -z "$SLN_FILE" ]; then
+          echo "❌ No solution file found!"
+          exit 1
+        fi
+        echo "✅ Found solution: $SLN_FILE"
+        dotnet restore "$SLN_FILE"
 
     - name: Build solution
-      run: dotnet build --no-restore --configuration Release
+      run: |
+        SLN_FILE=$(find . -name "*.sln" -type f | head -n 1)
+        dotnet build "$SLN_FILE" --no-restore --configuration Release
 
     - name: Run tests
-      run: dotnet test --no-build --configuration Release --verbosity normal
+      run: |
+        SLN_FILE=$(find . -name "*.sln" -type f | head -n 1)
+        dotnet test "$SLN_FILE" --no-build --configuration Release --verbosity normal
 
     - name: Build success
-      run: echo "✅ Build and tests passed successfully!"
+      run: echo "✅ Build and tests passed successfully!" 
