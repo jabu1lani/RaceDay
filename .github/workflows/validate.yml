@@ -17,24 +17,16 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '8.0.x'
-
-    - name: Find solution file
-      run: |
-        echo "=== Repository root ==="
-        ls -la
-        echo ""
-        echo "=== All .sln files found ==="
-        find . -name "*.sln" -type f
+        dotnet-version: '9.0.x'
 
     - name: Restore dependencies
-      run: dotnet restore RaceDay/RaceDay.sln
+      run: dotnet restore RaceDay/RaceDay.slnx
 
     - name: Build solution
-      run: dotnet build RaceDay/RaceDay.sln --no-restore --configuration Release
+      run: dotnet build RaceDay/RaceDay.slnx --no-restore --configuration Release
 
     - name: Run tests
-      run: dotnet test RaceDay/RaceDay.sln --no-build --configuration Release --verbosity normal
+      run: dotnet test RaceDay/RaceDay.slnx --no-build --configuration Release --verbosity normal
 
     - name: Build success
-      run: echo "✅ Build and tests passed successfully!"
+      run: echo "✅ Build and tests passed successfully!" 
