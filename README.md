@@ -163,6 +163,8 @@ All tests pass locally and in CI.
 
 CI/CD
 GitHub Actions workflow: .github/workflows/ci.yml
+![alt text](image1.png)
+![alt text](image2.png)
 
 Restores packages
 Builds solution
