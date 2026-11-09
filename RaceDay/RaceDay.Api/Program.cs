@@ -1,29 +1,11 @@
-using Microsoft.EntityFrameworkCore;
-using RaceDay.Api.Data;
-using RaceDay.Api.Services;
+using RaceDay.Mvc.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ============================================================
-// 1. ADD CONTROLLERS
-// ============================================================
-builder.Services.AddControllers();
+// Add services to the container.
+builder.Services.AddControllersWithViews();
 
-// ============================================================
-// 2. ADD SWAGGER (minimal, no extra packages needed)
-// ============================================================
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
-// ============================================================
-// 3. DATABASE CONTEXT
-// ============================================================
-builder.Services.AddDbContext<RaceDayDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-// ============================================================
-// 4. SESSION
-// ============================================================
+// 1. Session Support
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
@@ -31,30 +13,38 @@ builder.Services.AddSession(options =>
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
 });
-
 builder.Services.AddHttpContextAccessor();
 
-// ============================================================
-// 5. CUSTOM SERVICES
-// ============================================================
-builder.Services.AddScoped<IPasswordService, PasswordService>();
-builder.Services.AddScoped<ISessionService, SessionService>();
+// 2. HttpClient for the API
+builder.Services.AddHttpClient("RaceDayApi", client =>
+{
+    // Get URL from appsettings.json
+    string baseUrl = builder.Configuration["ApiSettings:BaseUrl"] ?? "https://localhost:7087/";
+    client.BaseAddress = new Uri(baseUrl);
+});
+
+// 3. Custom API Client Service
+builder.Services.AddScoped<RaceDayApiClient>();
 
 var app = builder.Build();
 
-// ============================================================
-// 6. SWAGGER MIDDLEWARE
-// ============================================================
-app.UseSwagger();
-app.UseSwaggerUI(options =>
+if (!app.Environment.IsDevelopment())
 {
-    options.SwaggerEndpoint("/swagger/v1/swagger.json", "RaceDay API v1");
-    options.RoutePrefix = "swagger";
-});
+    app.UseExceptionHandler("/Home/Error");
+    app.UseHsts();
+}
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
+
+app.UseRouting();
+
+// 4. Enable Session (Must be before UseAuthorization)
 app.UseSession();
 app.UseAuthorization();
-app.MapControllers();
+
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();
