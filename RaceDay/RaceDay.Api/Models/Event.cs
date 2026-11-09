@@ -41,5 +41,7 @@ namespace RaceDay.Api.Models
         // Navigation properties
         public ICollection<Category> Categories { get; set; } = new List<Category>();
         public ICollection<Enrolment> Enrolments { get; set; } = new List<Enrolment>();
+
+        public string? BannerImageUrl { get; set; } // Optional banner image URL for the event
     }
 }
