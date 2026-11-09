@@ -39,6 +39,7 @@ builder.Services.AddHttpContextAccessor();
 // ============================================================
 builder.Services.AddScoped<IPasswordService, PasswordService>();
 builder.Services.AddScoped<ISessionService, SessionService>();
+builder.Services.AddScoped<BlobStorageService>();
 
 var app = builder.Build();
 

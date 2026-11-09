@@ -137,6 +137,20 @@ namespace RaceDay.Api.Controllers
             });
         }
 
+        [HttpPost("{id}/banner")]
+        [OrganiserOnly] // Keep your role checks!
+        public async Task<IActionResult> UploadBanner(int id, IFormFile file, [FromServices] BlobStorageService blobStorage)
+        {
+            var eventItem = await _context.Events.FindAsync(id);
+            if (eventItem == null) return NotFound();
+
+            string url = await blobStorage.UploadAsync(file, "event-banners");
+            eventItem.BannerImageUrl = url;
+            await _context.SaveChangesAsync();
+
+            return Ok(new { imageUrl = url });
+        }
+
         // Organiser only: Update own event
         [HttpPut("{id}")]
         [OrganiserOnly]

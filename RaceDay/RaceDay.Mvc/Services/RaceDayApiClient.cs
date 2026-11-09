@@ -54,5 +54,23 @@ namespace RaceDay.Mvc.Services
             string json = await response.Content.ReadAsStringAsync();
             return JsonSerializer.Deserialize<T>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
         }
+
+        public async Task<HttpResponseMessage> UploadFileAsync(string url, IFormFile file)
+        {
+            var client = _factory.CreateClient("RaceDayApi");
+            var request = new HttpRequestMessage(HttpMethod.Post, url);
+
+            string? apiCookie = _httpContextAccessor.HttpContext?.Session.GetString("ApiSessionCookie");
+            if (!string.IsNullOrWhiteSpace(apiCookie))
+                request.Headers.TryAddWithoutValidation("Cookie", apiCookie);
+
+            var content = new MultipartFormDataContent();
+            var streamContent = new StreamContent(file.OpenReadStream());
+            streamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(file.ContentType);
+            content.Add(streamContent, "file", file.FileName);
+
+            request.Content = content;
+            return await client.SendAsync(request);
+        }
     }
 }
