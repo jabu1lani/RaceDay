@@ -15,9 +15,4 @@
     <ProjectReference Include="..\RaceDay.Contracts\RaceDay.Contracts.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="NewFolder1\" />
-    <Folder Include="NewFolder\" />
-  </ItemGroup>
-
 </Project>
