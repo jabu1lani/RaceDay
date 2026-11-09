@@ -1,0 +1,1 @@
+﻿public class CreateEventResponse { public int EventId { get; set; } }
