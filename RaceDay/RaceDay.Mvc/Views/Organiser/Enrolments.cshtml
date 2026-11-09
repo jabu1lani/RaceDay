@@ -1,0 +1,53 @@
+﻿@model List<RaceDay.Contracts.EnrolmentDto>
+@{ ViewData["Title"] = "Event Enrolments"; int eventId = ViewBag.EventId; }
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Enrolments & Results</h2>
+        <a asp-action="Events" class="btn btn-secondary">Back to Events</a>
+    </div>
+
+    @if (TempData["Success"] != null) { <div class="alert alert-success">@TempData["Success"]</div> }
+    @if (TempData["Error"] != null) { <div class="alert alert-danger">@TempData["Error"]</div> }
+
+    <table class="table table-bordered shadow-sm">
+        <thead class="table-dark">
+            <tr>
+                <th>Participant</th>
+                <th>Category</th>
+                <th>Status</th>
+                <th>Capture Result</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.Count == 0)
+            {
+                <tr><td colspan="4" class="text-center text-muted">No participants have enrolled yet.</td></tr>
+            }
+            @foreach (var en in Model)
+            {
+                <tr>
+                    <td>@en.ParticipantName</td>
+                    <td>@en.CategoryName</td>
+                    <td>
+                        @if(en.Status == "Confirmed") { <span class="badge bg-success">Confirmed</span> }
+                        else if(en.Status == "Pending") { <span class="badge bg-warning text-dark">Pending</span> }
+                        else { <span class="badge bg-secondary">@en.Status</span> }
+                    </td>
+                    <td>
+                        <form asp-action="AddResult" method="post" class="d-flex gap-2">
+                            <input type="hidden" name="eventId" value="@eventId" />
+                            <input type="hidden" name="EnrolmentId" value="@en.EnrolmentId" />
+                            
+                            <input type="time" step="1" name="FinishTime" class="form-control form-control-sm" required style="width: 120px;" />
+                            <input type="number" name="OverallPosition" class="form-control form-control-sm" placeholder="Pos" required style="width: 70px;" />
+                            <input type="number" name="CategoryPosition" class="form-control form-control-sm" placeholder="Cat Pos" required style="width: 80px;" />
+                            
+                            <button type="submit" class="btn btn-sm btn-primary">Save</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

@@ -60,5 +60,32 @@ namespace RaceDay.Api.Controllers
 
             return Ok(new { message = "Profile updated successfully." });
         }
+        [HttpPost("image")]
+        public async Task<IActionResult> UploadProfileImage([FromForm] IFormFile file, [FromServices] BlobStorageService blobStorage)
+        {
+            var userId = _sessionService.GetUserId();
+            if (userId == null) return Unauthorized();
+
+            var user = await _context.Users.FindAsync(userId.Value);
+            if (user == null) return NotFound(new { message = "User not found." });
+
+            if (file == null || file.Length == 0)
+                return BadRequest(new { message = "No file uploaded." });
+
+            try
+            {
+                // Upload to Azure via BlobStorageService
+                string url = await blobStorage.UploadAsync(file, "profile-pics");
+
+                user.ProfileImageUrl = url;
+                await _context.SaveChangesAsync();
+
+                return Ok(new { imageUrl = url });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Azure upload failed", details = ex.Message });
+            }
+        }
     }
 }

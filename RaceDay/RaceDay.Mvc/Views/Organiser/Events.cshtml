@@ -9,7 +9,12 @@
         <a asp-action="CreateEvent" class="btn btn-success">Create New Event</a>
     </div>
 
-    @if (Model.Count == 0)
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+
+    @if (Model == null || Model.Count == 0)
     {
         <div class="alert alert-info">
             You have not created any events yet. Click "Create New Event" to get started.
@@ -26,6 +31,13 @@
                             <span>@ev.Name</span>
                             <span class="badge bg-info text-dark">@ev.EventType</span>
                         </div>
+                        
+                        <!-- Show the banner image if it exists -->
+                        @if (!string.IsNullOrEmpty(ev.BannerImageUrl))
+                        {
+                            <img src="@ev.BannerImageUrl" class="card-img-top" alt="@ev.Name" style="height: 150px; object-fit: cover;">
+                        }
+                        
                         <div class="card-body">
                             <p class="mb-1"><strong>Date:</strong> @ev.EventDate.ToShortDateString()</p>
                             <p class="mb-1"><strong>Location:</strong> @ev.Location</p>
@@ -33,9 +45,13 @@
                             <p class="text-muted small mt-2">@ev.Description</p>
                         </div>
                         <div class="card-footer bg-white">
-                            <a href="#" class="btn btn-sm btn-outline-primary">Edit</a>
-                            <a href="#" class="btn btn-sm btn-outline-danger">Delete</a>
-                            <a href="#" class="btn btn-sm btn-outline-success">Manage Categories</a>
+                            <a asp-action="EditEvent" asp-route-id="@ev.EventId" class="btn btn-sm btn-outline-primary">Edit</a>
+                            <a asp-action="Categories" asp-route-id="@ev.EventId" class="btn btn-sm btn-outline-success">Categories</a>
+                            <a asp-action="Enrolments" asp-route-id="@ev.EventId" class="btn btn-sm btn-outline-info">Enrolments & Results</a>
+                            
+                            <form asp-action="DeleteEvent" asp-route-id="@ev.EventId" method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this event?');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                            </form>
                         </div>
                     </div>
                 </div>

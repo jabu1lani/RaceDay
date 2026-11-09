@@ -36,6 +36,8 @@
         public string Role { get; set; } = string.Empty;
         public string? PhoneNumber { get; set; }
         public DateTime CreatedAt { get; set; }
+        public string? BannerImageUrl { get; set; }
+        public string? ProfileImageUrl { get; set; }
     }
 
     public class UpdateProfileRequest
@@ -78,6 +80,8 @@
         public int OrganiserId { get; set; }
         public string OrganiserName { get; set; } = string.Empty;
         public List<CategoryDto> Categories { get; set; } = new();
+        public string? BannerImageUrl { get; set; }
+        public string? ProfileImageUrl { get; set; }
     }
 
     // ========== CATEGORY DTOs ==========

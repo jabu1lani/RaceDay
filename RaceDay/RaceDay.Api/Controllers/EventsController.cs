@@ -190,5 +190,21 @@ namespace RaceDay.Api.Controllers
 
             return Ok(new { message = "Event deleted successfully." });
         }
+        [HttpPost("{id}/banner")]
+        [OrganiserOnly]
+        public async Task<IActionResult> UploadBanner(int id, IFormFile file, [FromServices] RaceDay.Api.Services.BlobStorageService blobStorage)
+        {
+            var eventItem = await _context.Events.FindAsync(id);
+            if (eventItem == null) return NotFound(new { message = "Event not found." });
+
+            // Upload to Azure!
+            string url = await blobStorage.UploadAsync(file, "event-banners");
+
+            // Save URL to database
+            eventItem.BannerImageUrl = url;
+            await _context.SaveChangesAsync();
+
+            return Ok(new { imageUrl = url });
+        }
     }
 }

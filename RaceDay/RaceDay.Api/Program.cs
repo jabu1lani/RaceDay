@@ -30,6 +30,8 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IPasswordService, PasswordService>();
 builder.Services.AddScoped<ISessionService, SessionService>();
 
+builder.Services.AddScoped<RaceDay.Api.Services.BlobStorageService>();
+
 var app = builder.Build();
 
 // 6. Swagger Middleware

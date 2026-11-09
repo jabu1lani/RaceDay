@@ -9,14 +9,28 @@ namespace RaceDay.Mvc.Controllers
         private readonly RaceDayApiClient _api;
         public ParticipantController(RaceDayApiClient api) => _api = api;
 
-        public async Task<IActionResult> Index()
+        // GET: Participant/Index (with Filtering)
+        [HttpGet]
+        public async Task<IActionResult> Index(string? search)
         {
             if (HttpContext.Session.GetString("Role") != "Participant")
                 return RedirectToAction("Login", "Auth");
 
-            // Fetch all public events
+            // Fetch all public events from API
             var response = await _api.SendAsync(HttpMethod.Get, "api/events");
             var events = await _api.ReadAsync<List<EventDto>>(response) ?? new List<EventDto>();
+
+            // Apply filtering if a search term was provided
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                events = events.Where(e =>
+                    e.Name.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                    e.Location.Contains(search, StringComparison.OrdinalIgnoreCase)
+                ).ToList();
+            }
+
+            // Pass the search term back to the view so the input stays populated
+            ViewBag.CurrentSearch = search;
 
             return View(events);
         }
@@ -82,19 +96,42 @@ namespace RaceDay.Mvc.Controllers
             return View(results);
         }
 
-        // GET: Profile
+        // GET: Participant/Profile
         [HttpGet]
         public IActionResult Profile()
         {
             if (HttpContext.Session.GetString("Role") != "Participant")
                 return RedirectToAction("Login", "Auth");
 
-            // Note: For now, we just show the session data. 
-            // Later, you can call the API to get the full profile.
             ViewBag.Name = HttpContext.Session.GetString("DisplayName");
             ViewBag.Email = HttpContext.Session.GetString("Email");
-
             return View();
+        }
+        // POST: Participant/Profile (Handles the image upload)
+        [HttpPost]
+        public async Task<IActionResult> UploadProfilePicture(IFormFile profilePic)
+        {
+            if (profilePic == null || profilePic.Length == 0)
+            {
+                TempData["Error"] = "Please select a file.";
+                return RedirectToAction(nameof(Profile));
+            }
+
+            // Send file to the API
+            var response = await _api.UploadFileAsync("api/profile/image", profilePic);
+
+            if (response.IsSuccessStatusCode)
+            {
+                TempData["Success"] = "Profile picture updated!";
+            }
+            else
+            {
+                // Read the exact error from the API to help us debug
+                var error = await response.Content.ReadAsStringAsync();
+                TempData["Error"] = $"Failed to upload. API says: {error}";
+            }
+
+            return RedirectToAction(nameof(Profile));
         }
     }
 }

@@ -4,27 +4,70 @@
 }
 
 <div class="container mt-4">
-    <h2>Upcoming Events</h2>
-    <p class="text-muted">Browse and enrol in events across South Africa.</p>
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2>Upcoming Events</h2>
+            <p class="text-muted">Browse and enrol in events across South Africa.</p>
+        </div>
+        <div class="col-md-4 d-flex align-items-center justify-content-end">
+            <!-- Search Form -->
+            <form method="get" asp-action="Index" class="d-flex w-100">
+                <input type="text" name="search" value="@ViewBag.CurrentSearch" 
+                       class="form-control me-2" placeholder="Search name or city..." />
+                <button type="submit" class="btn btn-primary me-1">Search</button>
+                @if (!string.IsNullOrEmpty(ViewBag.CurrentSearch))
+                {
+                    <a asp-action="Index" class="btn btn-outline-secondary">Clear</a>
+                }
+            </form>
+        </div>
+    </div>
 
-    <div class="row mt-4">
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+
+    <div class="row">
         @if (Model.Count == 0)
         {
-            <div class="col-12"><p>No events available right now.</p></div>
+            <div class="col-12">
+                <div class="alert alert-info">
+                    No events found matching your criteria.
+                </div>
+            </div>
         }
         else
         {
             @foreach (var ev in Model)
             {
                 <div class="col-md-4 mb-4">
-                    <div class="card shadow-sm h-100">
+                    <div class="card shadow-sm h-100 border-0">
+                        @if (!string.IsNullOrEmpty(ev.BannerImageUrl))
+                        {
+                            <img src="@ev.BannerImageUrl" class="card-img-top" alt="@ev.Name" style="height: 180px; object-fit: cover;">
+                        }
+                        else
+                        {
+                            <div class="bg-secondary text-white d-flex justify-content-center align-items-center" style="height: 180px;">
+                                <span>No Image Available</span>
+                            </div>
+                        }
+                        
                         <div class="card-body">
-                            <h5 class="card-title">@ev.Name</h5>
-                            <h6 class="card-subtitle mb-2 text-muted">@ev.Location</h6>
-                            <p class="card-text">@ev.Description</p>
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h5 class="card-title mb-0">@ev.Name</h5>
+                                <span class="badge bg-info text-dark">@ev.EventType</span>
+                            </div>
+                            <h6 class="card-subtitle mb-2 text-muted"><i class="bi bi-geo-alt-fill"></i> @ev.Location</h6>
+                            <p class="card-text small text-muted">@ev.Description</p>
                         </div>
-                        <div class="card-footer bg-white d-flex justify-content-between align-items-center">
-                            <small class="text-muted">@ev.EventDate.ToShortDateString()</small>
+                        <div class="card-footer bg-white border-0 d-flex justify-content-between align-items-center">
+                            <small class="text-muted fw-bold">@ev.EventDate.ToShortDateString()</small>
                             <a asp-action="EventDetails" asp-route-id="@ev.EventId" class="btn btn-sm btn-success">View & Enter</a>
                         </div>
                     </div>
