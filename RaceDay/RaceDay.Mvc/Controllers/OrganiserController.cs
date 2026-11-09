@@ -9,44 +9,61 @@ namespace RaceDay.Mvc.Controllers
         private readonly RaceDayApiClient _api;
         public OrganiserController(RaceDayApiClient api) => _api = api;
 
-        // 1. Show the form
+        public async Task<IActionResult> Index()
+        {
+            // 1. Check if logged in and is an Organiser
+            if (HttpContext.Session.GetString("Role") != "Organiser")
+                return RedirectToAction("Login", "Auth");
+
+            // 2. Fetch events from API
+            var response = await _api.SendAsync(HttpMethod.Get, "api/events/mine");
+            var events = await _api.ReadAsync<List<EventDto>>(response) ?? new List<EventDto>();
+
+            return View(events);
+        }
+        // 1. GET: Show the form
         [HttpGet]
         public IActionResult CreateEvent()
         {
-            return View(new CreateEventRequest());
+            if (HttpContext.Session.GetString("Role") != "Organiser")
+                return RedirectToAction("Login", "Auth");
+
+            return View();
         }
 
-        // 2. Handle the form submission
+        // 2. POST: Send the data to the API
         [HttpPost]
-        public async Task<IActionResult> CreateEvent(CreateEventRequest model, IFormFile? bannerFile)
+        public async Task<IActionResult> CreateEvent(CreateEventRequest request)
         {
-            if (!ModelState.IsValid) return View(model);
+            if (HttpContext.Session.GetString("Role") != "Organiser")
+                return RedirectToAction("Login", "Auth");
 
-            // A. Send the event data to the API
-            var response = await _api.SendAsync(HttpMethod.Post, "api/events", model);
+            if (!ModelState.IsValid) return View(request);
+
+            // Send to API
+            var response = await _api.SendAsync(HttpMethod.Post, "api/events", request);
 
             if (!response.IsSuccessStatusCode)
             {
-                ModelState.AddModelError("", "Failed to create event in the API.");
-                return View(model);
-            }
-
-            // B. Read the newly created event ID from the API response
-            var createdEvent = await _api.ReadAsync<EventDto>(response);
-            if (createdEvent == null) return View(model);
-
-            // C. If a banner file was uploaded, send it to the API upload endpoint
-            if (bannerFile != null && bannerFile.Length > 0)
-            {
-                // The Part 2 API endpoint we created earlier
-                string uploadUrl = $"api/events/{createdEvent.EventId}/banner";
-
-                // Call the multipart upload method in your API Client
-                await _api.UploadFileAsync(uploadUrl, bannerFile);
+                var error = await response.Content.ReadAsStringAsync();
+                ModelState.AddModelError("", "Failed to create event. " + error);
+                return View(request);
             }
 
             TempData["Success"] = "Event created successfully!";
-            return RedirectToAction("Events"); // Redirect back to event list
+            return RedirectToAction(nameof(Index));
+        }
+        // GET: Organiser/Events (Manage Events)
+        [HttpGet]
+        public async Task<IActionResult> Events()
+        {
+            if (HttpContext.Session.GetString("Role") != "Organiser")
+                return RedirectToAction("Login", "Auth");
+
+            var response = await _api.SendAsync(HttpMethod.Get, "api/events/mine");
+            var events = await _api.ReadAsync<List<EventDto>>(response) ?? new List<EventDto>();
+
+            return View(events);
         }
     }
 }

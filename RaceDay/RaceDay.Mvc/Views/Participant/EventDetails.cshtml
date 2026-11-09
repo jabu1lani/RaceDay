@@ -1,0 +1,59 @@
+﻿@model RaceDay.Contracts.EventDto
+@{
+    ViewData["Title"] = "Event Details";
+}
+
+<div class="container mt-4">
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+
+    <div class="card shadow">
+        <div class="card-header bg-dark text-white">
+            <h3>@Model.Name</h3>
+        </div>
+        <div class="card-body">
+            <p><strong>Date:</strong> @Model.EventDate.ToShortDateString()</p>
+            <p><strong>Location:</strong> @Model.Location</p>
+            <p><strong>Distance:</strong> @Model.DistanceKm km</p>
+            <p><strong>Type:</strong> @Model.EventType</p>
+            <p>@Model.Description</p>
+
+            <hr />
+            <h5>Available Categories</h5>
+            
+            @if (Model.Categories == null || Model.Categories.Count == 0)
+            {
+                <p class="text-muted">No categories available for this event yet.</p>
+            }
+            else
+            {
+                <div class="row">
+                    @foreach (var cat in Model.Categories)
+                    {
+                        <div class="col-md-4 mb-3">
+                            <div class="card border-info">
+                                <div class="card-body">
+                                    <h6 class="card-title">@cat.Name</h6>
+                                    <p class="card-text small">Fee: R@cat.EntryFee</p>
+                                    
+                                    <form asp-action="Enrol" method="post">
+                                        <input type="hidden" name="eventId" value="@Model.EventId" />
+                                        <input type="hidden" name="categoryId" value="@cat.CategoryId" />
+                                        <button type="submit" class="btn btn-sm btn-outline-success w-100">Enter Event</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+    <a asp-action="Index" class="btn btn-secondary mt-3">Back to Events</a>
+</div>

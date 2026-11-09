@@ -1,0 +1,39 @@
+﻿@model List<RaceDay.Contracts.ResultDto>
+@{
+    ViewData["Title"] = "My Results";
+}
+
+<div class="container mt-4">
+    <h2>My Race Results</h2>
+
+    @if (Model.Count == 0)
+    {
+        <div class="alert alert-info">You don't have any race results yet.</div>
+    }
+    else
+    {
+        <table class="table table-hover shadow-sm mt-3">
+            <thead class="table-dark">
+                <tr>
+                    <th>Event</th>
+                    <th>Category</th>
+                    <th>Finish Time</th>
+                    <th>Overall Position</th>
+                    <th>Category Position</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var res in Model)
+                {
+                    <tr>
+                        <td>@res.EventName</td>
+                        <td>@res.CategoryName</td>
+                        <td>@res.FinishTime.ToString(@"hh\:mm\:ss")</td>
+                        <td>@res.OverallPosition</td>
+                        <td>@res.CategoryPosition</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
